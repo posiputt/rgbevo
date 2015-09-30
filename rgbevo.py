@@ -41,6 +41,13 @@ class world:
                 self.worldmap[row].append(cell(self.mgl))
         self.worldstring = self.gen_worldstring()
         self.direction_stat = {'n':0, 'w':0, 's':0, 'e':0}
+        
+    def run(self):
+        while (True):
+            self.tic()
+            print self.worldstring
+            print "n: %s\tw: %s\ts: %s\te: %s" % (self.direction_stat['n'], self.direction_stat['w'], self.direction_stat['s'], self.direction_stat['e'])
+            time.sleep(0.1)
 
     def gen_worldstring(self):
         #print "generating worldstring"
@@ -91,10 +98,9 @@ class world:
 
 if __name__ == '__main__':
     earth = world(0x10, 70, 30, 0.01)
-    print earth.get_worldstring()
+    earth.run()
     time.sleep(1)
     while(True):
         earth.tic()
         print earth.get_worldstring()
-        print "n: %s\tw: %s\ts: %s\te: %s" % (earth.direction_stat['n'], earth.direction_stat['w'], earth.direction_stat['s'], earth.direction_stat['e'])
-        time.sleep(0.1)
+        
