@@ -123,8 +123,3 @@ class world:
 if __name__ == '__main__':
     earth = world(0x100, 75, 40, 0.0001)
     earth.run()
-    time.sleep(1)
-    while(True):
-        earth.tic()
-        print earth.get_worldstring()
-        
