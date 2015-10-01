@@ -3,12 +3,32 @@
 import random
 import time
 
-class cell:
+class Cell:
+    '''
+    class Cell
+    ----------
+    A simple "organism", containing an integer as "genome"
+
+    '''
+
     def __init__(self, max_genome_length=0xffffff, genome=0):
+        '''
+        function __init__
+        -----------------
+        parameters:
+        max_genome_length:  integer
+        genome:             integer (trucated if > max_genome_length)
+        '''
         self.mgl = max_genome_length
         self.genome = genome if genome < self.mgl else genome%self.mgl
 
     def set_genome(self, genome):
+        '''
+        function set_genome: set this cell's genome to a new value
+        ---------------------------------------------------------
+        parameters:
+        genome  integer (capped by self.mgl)
+        '''
         if genome >= self.mgl:
             self.genome = self.mgl-1
         elif genome < 0:
@@ -17,18 +37,33 @@ class cell:
             self.genome = genome
 
     def get_genome(self):
+        '''
+        function get_genome: return this cell's genome
+        ---------------------------------------------
+        '''
         return self.genome
 
     def procreate(self, mutation_rate):
-        direction = random.choice("nwse")
+        '''
+        function procreate: return a (possibly) mutated version of this cell's genome
+        ------------------------------------------------------------------
+        parameters:
+        mutation_rate   float <= 1  (defines mutation probability: larger number == higher probability)
+        '''
+        direction = random.choice("nesw")   # as in north (up), east (right), south (down), west (left)
         if random.random() < mutation_rate:
-            mutation = 2**random.randint(1, len(bin(self.mgl))-3)
+            # prepare XOR bit-toggling by gettin a random power of 2
+            # that is <= max_genome_length
+            mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
+            # randomly choose btw:
+            # 1) switching one bit of genome by XOR
+            # 2) adding or substraction 1 from genome
             mutation = random.choice(((self.genome ^ mutation), (self.genome + random.choice((-1,1)))))
             return (direction, mutation)
-        else:
+        else: # if not mutated, return genome as-is
             return (direction, self.genome)
 
-class world:
+class World:
     def __init__(self, max_genome_length, size_x=30, size_y=10, mutation_rate=0.01):
         self.mgl = max_genome_length
         self.optimal_genome = 0xf
@@ -41,7 +76,7 @@ class world:
         for row in range(self.size_y):
             self.worldmap.append([])
             for col in range(self.size_x):
-                self.worldmap[row].append(cell(self.mgl))
+                self.worldmap[row].append(Cell(self.mgl))
         self.worldstring = self.gen_worldstring()
         self.direction_stat = {'n':0, 'w':0, 's':0, 'e':0}
         self.generations = 0
@@ -121,5 +156,5 @@ class world:
         self.generations += 1
 
 if __name__ == '__main__':
-    earth = world(0x100, 75, 40, 0.0001)
+    earth = World(0x100, 75, 40, 0.0001)
     earth.run()
