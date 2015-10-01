@@ -22,8 +22,9 @@ class cell:
     def procreate(self, mutation_rate):
         direction = random.choice("nwse")
         if random.random() < mutation_rate:
-            mutation = random.choice((1,-1))
-            return (direction, self.genome + mutation)
+            mutation = 2**random.randint(1, len(bin(self.mgl))-3)
+            mutation = random.choice(((self.genome ^ mutation), (self.genome + random.choice((-1,1)))))
+            return (direction, mutation)
         else:
             return (direction, self.genome)
 
@@ -31,7 +32,7 @@ class world:
     def __init__(self, max_genome_length, size_x=30, size_y=10, mutation_rate=0.01):
         self.mgl = max_genome_length
         self.optimal_genome = 0xf
-        self.change_optimal_at = 300000
+        self.change_optimal_at = 100000
         self.change_index = 0
         self.size_x = size_x
         self.size_y = size_y
@@ -120,7 +121,7 @@ class world:
         self.generations += 1
 
 if __name__ == '__main__':
-    earth = world(0x10, 75, 40, 0.00001)
+    earth = world(0x100, 75, 40, 0.0001)
     earth.run()
     time.sleep(1)
     while(True):
