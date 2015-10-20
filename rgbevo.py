@@ -219,13 +219,28 @@ class World:
         self.generations += 1
 
 if __name__ == '__main__':
-    indicators = '--world-size', '-ws', '--rect-size', '-rs', '--mutation-rate', '-m'
+    indicators = '--help', '-h', '--world-size', '-ws', '--rect-size', '-rs', '--mutation-rate', '-m'
     worldsize = [10, 10]
     rectsize = 10
     mutation_rate = 0.01
     for index, a in enumerate(sys.argv):
         if a in indicators:
-            if a == '--world-size' or a == '-ws':
+            if a == '--help' or a == '-h':
+                rtfm =  "\nrgbevo - a silly, colorful evolution sim.\n" \
+                        "-----------------------------------------\n" \
+                        "options:\n" \
+                        "--------\n" \
+                        "--help, -h:\t\tshow this manual, quit\n" \
+                        "--world-size 120x100:\tset world size to " \
+                        "X = 120, Y = 100 rectangles\n" \
+                        "\t\t\tshort form: --ws 120x100\n" \
+                        "--rect-size 10:\t\tset rectangle size to 10px squared\n" \
+                        "\t\t\tshort form: --rs 10\n" \
+                        "--mutation-rate 0.1:\tset mutation rate to 0.1\n" \
+                        "\t\t\thigher rate means mutations more common\n" \
+                        "\t\t\tshouldn't be >1\n"
+                quit(rtfm)
+            elif a == '--world-size' or a == '-ws':
                 worldsize = sys.argv[index+1].split('x')
                 if len(worldsize) != 2:
                     quit('try something like "--world-size 20x20"')
@@ -239,8 +254,10 @@ if __name__ == '__main__':
                 mutation_rate = float(sys.argv[index+1])
             else:
                 pass
-    #worldsize[0] = rectsize * worldsize[0]
-    #worldsize[1] = rectsize * worldsize[1]
+        else:
+            if not a == "rgbevo.py":
+                error = "Unknown option: " + a + ". Quitting."
+                quit(error)
     arg_echo = "Initializing world with these properties:\nworld-size: %ix%i\nrect-size: %i\nmutation-rate: %f\n" % (
             worldsize[0], worldsize[1],
             rectsize,
