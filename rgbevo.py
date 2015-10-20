@@ -108,16 +108,17 @@ class World:
             self.tic()
             pygame.display.update(self.updated_rects)
             #print self.worldstring
-            print "\roptimal: %2x (%i of %i), generations: %i, n: %s, w: %s, s: %s, e: %s" % (
+            '''
+            print "optimal: %06x (%i of %i), generations: %i, changes: %i" % (
                 self.optimal_genome,
                 self.change_index,
                 self.change_optimal_at,
-                self.generations, self.direction_stat['n'],
-                self.direction_stat['w'],
-                self.direction_stat['s'],
-                self.direction_stat['e']
+                self.generations,
+                len(self.updated_rects)
             )
-            self.clock.tick_busy_loop(20)
+            '''
+            self.updated_rects = []
+            #self.clock.tick_busy_loop(20)
             #time.sleep(0.1)
 
     def gen_worldstring(self):
@@ -134,15 +135,18 @@ class World:
 
     def tic(self):
         wm = self.worldmap
-        self.updated_rects = []
         for rowkey, row in enumerate(self.worldmap):
             for cellkey, cell in enumerate(row):
                 child = cell.procreate(self.mr)
+                this_genome = child[1]
                 if child[0] == 'n':
                     rindex = rowkey-1
                     if not rindex < 0:
                         rival_genome = self.worldmap[rindex][cellkey].get_genome()
-                        if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
+                        if rival_genome == this_genome:
+                            pass
+                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
+                            #print "%06x wins over %06x" % (this_genome, rival_genome)
                             wm[rindex][cellkey].set_genome(child[1])
                             color = child[1]
                             position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
@@ -153,7 +157,9 @@ class World:
                     cindex = cellkey+1
                     if not cindex >= self.size_x:
                         rival_genome = self.worldmap[rowkey][cindex].get_genome()
-                        if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
+                        if rival_genome == this_genome:
+                            pass
+                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
                             wm[rowkey][cindex].set_genome(child[1])
                             position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
                             self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
@@ -163,7 +169,9 @@ class World:
                     rindex = rowkey+1
                     if not rindex >= self.size_y:
                         rival_genome = self.worldmap[rindex][cellkey].get_genome()
-                        if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
+                        if rival_genome == this_genome:
+                            pass
+                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
                             wm[rindex][cellkey].set_genome(child[1])
                             position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
                             self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
@@ -173,7 +181,9 @@ class World:
                     cindex = cellkey-1
                     if not cindex < 0:
                         rival_genome = self.worldmap[rowkey][cindex].get_genome()
-                        if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
+                        if rival_genome == this_genome:
+                            pass
+                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
                             wm[rowkey][cindex].set_genome(child[1])
                             position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
                             self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
@@ -191,5 +201,5 @@ class World:
 
 if __name__ == '__main__':
     pygame.init()
-    earth = World(0x1000000, 10, 120, 70, 0.001)
+    earth = World(0x1000000, 10, 120, 70, 0.5)
     earth.run()
