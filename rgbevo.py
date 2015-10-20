@@ -87,7 +87,7 @@ class World:
         self.size_x = size_x
         self.size_y = size_y
         self.mr = mutation_rate
-        self.screen = pygame.display.set_mode((size_x*rectsize, size_y*rectsize))
+        self.screen = pygame.display.set_mode((self.size_x*self.rectsize, self.size_y*self.rectsize))
         self.clock = pygame.time.Clock()
         '''
         generate worldmap
@@ -117,7 +117,7 @@ class World:
                 self.direction_stat['s'],
                 self.direction_stat['e']
             )
-            self.clock.tick_busy_loop(10)
+            self.clock.tick_busy_loop(20)
             #time.sleep(0.1)
 
     def gen_worldstring(self):
@@ -191,5 +191,5 @@ class World:
 
 if __name__ == '__main__':
     pygame.init()
-    earth = World(0x1000000, 5, 200, 100, 0.00001)
+    earth = World(0x1000000, 10, 120, 70, 0.001)
     earth.run()
