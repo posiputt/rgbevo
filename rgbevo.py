@@ -59,7 +59,11 @@ class Cell:
             # randomly choose between:
             # 1) switching one bit of the genome by XOR
             # 2) adding or substracting 1 from genome
-            mutation = random.choice(((self.genome ^ mutation), (self.genome + random.choice((-1,1)))))
+            # mutation = random.choice((
+            #         (self.genome ^ mutation),
+            #         (self.genome + random.choice((-1,1)))
+            #         ))
+            mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
             return (direction, mutation)
         else: # if not mutated, return genome as-is
             return (direction, self.genome)
@@ -81,6 +85,7 @@ class World:
         '''
         self.mgl = max_genome_length
         self.optimal_genome = random.randint(0, self.mgl-1)   # initial value of the "fitness functions" goal
+        print "%06x" % self.optimal_genome
         self.change_optimal_at = 100000                     # number of spawned optimal cells before optimums regeneration
         self.change_index = 0                               # counter of spawned optimal cells
         self.rectsize = rectsize
@@ -194,6 +199,7 @@ class World:
                     self.change_index += 1
                     if self.change_index >= self.change_optimal_at:
                         self.optimal_genome = random.choice(range(self.mgl))
+                        print "%06x" % self.optimal_genome
                         self.change_index = 0
         self.worldmap =  wm
         self.gen_worldstring()
