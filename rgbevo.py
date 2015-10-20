@@ -2,6 +2,7 @@
 
 import random
 import time
+import pygame
 
 class Cell:
     '''
@@ -55,37 +56,59 @@ class Cell:
             # prepare XOR bit-toggling by gettin a random power of 2
             # that is <= max_genome_length
             mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
-            # randomly choose btw:
-            # 1) switching one bit of genome by XOR
-            # 2) adding or substraction 1 from genome
+            # randomly choose between:
+            # 1) switching one bit of the genome by XOR
+            # 2) adding or substracting 1 from genome
             mutation = random.choice(((self.genome ^ mutation), (self.genome + random.choice((-1,1)))))
             return (direction, mutation)
         else: # if not mutated, return genome as-is
             return (direction, self.genome)
 
 class World:
-    def __init__(self, max_genome_length, size_x=30, size_y=10, mutation_rate=0.01):
+    '''
+    class World
+    -----------
+    A two-dimensional list of cells
+    '''
+    def __init__(self, max_genome_length, rectsize=5, size_x=30, size_y=10, mutation_rate=0.01):
+        '''
+        function __init__
+        -----------------
+        parameters:
+        max_genome_length   integer
+        size_x, size_y      integers
+        mutation_rate       float <= 1  (larger number => higher mutation rate)
+        '''
         self.mgl = max_genome_length
-        self.optimal_genome = 0xf
-        self.change_optimal_at = 100000
-        self.change_index = 0
+        self.optimal_genome = random.randint(0, self.mgl-1)   # initial value of the "fitness functions" goal
+        self.change_optimal_at = 100000                     # number of spawned optimal cells before optimums regeneration
+        self.change_index = 0                               # counter of spawned optimal cells
+        self.rectsize = rectsize
         self.size_x = size_x
         self.size_y = size_y
         self.mr = mutation_rate
+        self.screen = pygame.display.set_mode((size_x*rectsize, size_y*rectsize))
+        self.clock = pygame.time.Clock()
+        '''
+        generate worldmap
+        '''
         self.worldmap = []
-        for row in range(self.size_y):
+        for row in range(self.size_y):      # append rows
             self.worldmap.append([])
-            for col in range(self.size_x):
+            for col in range(self.size_x):  # append columns
                 self.worldmap[row].append(Cell(self.mgl))
+        # worldstring for "graphical" representation
         self.worldstring = self.gen_worldstring()
-        self.direction_stat = {'n':0, 'w':0, 's':0, 'e':0}
-        self.generations = 0
+        self.updated_rects = []                             # for pygame.screen updating performance
+        self.direction_stat = {'n':0, 'w':0, 's':0, 'e':0}  # direction choice counters
+        self.generations = 0                                # generation counters
         
     def run(self):
         while (True):
             self.tic()
-            print self.worldstring
-            print "optimal: %2x (%i of %i), generations: %i\nn: %s, w: %s, s: %s, e: %s" % (
+            pygame.display.update(self.updated_rects)
+            #print self.worldstring
+            print "\roptimal: %2x (%i of %i), generations: %i, n: %s, w: %s, s: %s, e: %s" % (
                 self.optimal_genome,
                 self.change_index,
                 self.change_optimal_at,
@@ -94,14 +117,15 @@ class World:
                 self.direction_stat['s'],
                 self.direction_stat['e']
             )
-            time.sleep(0.1)
+            self.clock.tick_busy_loop(10)
+            #time.sleep(0.1)
 
     def gen_worldstring(self):
         #print "generating worldstring"
         worldstring = ''
         for row in self.worldmap:
             for cell in row:
-                worldstring += "%2x" % cell.get_genome()
+                worldstring += "%6x" % cell.get_genome()
             worldstring += "\n"
         self.worldstring = worldstring
 
@@ -110,6 +134,7 @@ class World:
 
     def tic(self):
         wm = self.worldmap
+        self.updated_rects = []
         for rowkey, row in enumerate(self.worldmap):
             for cellkey, cell in enumerate(row):
                 child = cell.procreate(self.mr)
@@ -119,6 +144,9 @@ class World:
                         rival_genome = self.worldmap[rindex][cellkey].get_genome()
                         if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
                             wm[rindex][cellkey].set_genome(child[1])
+                            color = child[1]
+                            position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
+                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
                     else:
                         pass
                 elif child[0] == 'w':
@@ -127,6 +155,8 @@ class World:
                         rival_genome = self.worldmap[rowkey][cindex].get_genome()
                         if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
                             wm[rowkey][cindex].set_genome(child[1])
+                            position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
+                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
                     else:
                         pass
                 if child[0] == 's':
@@ -135,6 +165,8 @@ class World:
                         rival_genome = self.worldmap[rindex][cellkey].get_genome()
                         if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
                             wm[rindex][cellkey].set_genome(child[1])
+                            position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
+                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
                     else:
                         pass
                 if child[0] == 'e':
@@ -143,6 +175,8 @@ class World:
                         rival_genome = self.worldmap[rowkey][cindex].get_genome()
                         if not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - cell.get_genome()):
                             wm[rowkey][cindex].set_genome(child[1])
+                            position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
+                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
                     else:
                         pass
                 self.direction_stat[child[0]] += 1
@@ -156,5 +190,6 @@ class World:
         self.generations += 1
 
 if __name__ == '__main__':
-    earth = World(0x100, 75, 40, 0.0001)
+    pygame.init()
+    earth = World(0x1000000, 5, 200, 100, 0.00001)
     earth.run()
