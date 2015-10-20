@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
 
 import random
-import time
 import pygame
+import sys
 
 class Cell:
     '''
@@ -55,8 +55,15 @@ class Cell:
         if random.random() < mutation_rate:
             # prepare XOR bit-toggling by gettin a random power of 2
             # that is <= max_genome_length
-            # mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
-            mutation = 2** random.choice((0,8,16,24))
+            ''' 
+            mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
+            '''
+            
+            mutation = 2** random.choice((7,15,23))
+            
+            '''
+            mutation = 2** random.randint(0,23)
+            '''    
             # randomly choose between:
             # 1) switching one bit of the genome by XOR
             # 2) adding or substracting 1 from genome
@@ -64,8 +71,12 @@ class Cell:
                     (self.genome ^ mutation),
                     (self.genome + random.choice((-1,1)))
                     ))
-            # mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
-            # mutation = self.genome + random.choice((-1,1))
+            '''
+            mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
+            '''
+            '''
+            mutation = self.genome + random.choice((-0x1,0x1,-0x100,0x100,-0x10000,0x10000))
+            '''
             return (direction, mutation)
         else: # if not mutated, return genome as-is
             return (direction, self.genome)
@@ -76,7 +87,7 @@ class World:
     -----------
     A two-dimensional list of cells
     '''
-    def __init__(self, max_genome_length, rectsize=5, size_x=30, size_y=10, mutation_rate=0.01):
+    def __init__(self, max_genome_length, rectsize=5, size=(10, 10), mutation_rate=0.01):
         '''
         function __init__
         -----------------
@@ -91,8 +102,8 @@ class World:
         self.change_optimal_at = 100000                     # number of spawned optimal cells before optimums regeneration
         self.change_index = 0                               # counter of spawned optimal cells
         self.rectsize = rectsize
-        self.size_x = size_x
-        self.size_y = size_y
+        self.size_x = size[0]
+        self.size_y = size[1]
         self.mr = mutation_rate
         self.screen = pygame.display.set_mode((self.size_x*self.rectsize, self.size_y*self.rectsize))
         self.clock = pygame.time.Clock()
@@ -125,7 +136,7 @@ class World:
             )
             '''
             self.updated_rects = []
-            #self.clock.tick_busy_loop(20)
+            self.clock.tick_busy_loop(30)
             #time.sleep(0.1)
 
     def gen_worldstring(self):
@@ -208,6 +219,34 @@ class World:
         self.generations += 1
 
 if __name__ == '__main__':
+    indicators = '--world-size', '-ws', '--rect-size', '-rs', '--mutation-rate', '-m'
+    worldsize = [10, 10]
+    rectsize = 10
+    mutation_rate = 0.01
+    for index, a in enumerate(sys.argv):
+        if a in indicators:
+            if a == '--world-size' or a == '-ws':
+                worldsize = sys.argv[index+1].split('x')
+                if len(worldsize) != 2:
+                    quit('try something like "--world-size 20x20"')
+                else:
+                    worldsize[0] = int(worldsize[0])
+                    worldsize[1] = int(worldsize[1])
+            elif a == '--rect-size' or a == '-rs':
+                rectsize = int(sys.argv[index+1])
+            elif a == '--mutation-rate' or a == '-m':
+                print sys.argv[index+1]
+                mutation_rate = float(sys.argv[index+1])
+            else:
+                pass
+    #worldsize[0] = rectsize * worldsize[0]
+    #worldsize[1] = rectsize * worldsize[1]
+    arg_echo = "Initializing world with these properties:\nworld-size: %ix%i\nrect-size: %i\nmutation-rate: %f\n" % (
+            worldsize[0], worldsize[1],
+            rectsize,
+            mutation_rate
+    )
+    print arg_echo
     pygame.init()
-    earth = World(0x1000000, 10, 120, 70, 0.5)
+    earth = World(0x1000000, rectsize=rectsize, size=worldsize, mutation_rate=mutation_rate)
     earth.run()
