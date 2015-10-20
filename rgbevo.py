@@ -55,15 +55,17 @@ class Cell:
         if random.random() < mutation_rate:
             # prepare XOR bit-toggling by gettin a random power of 2
             # that is <= max_genome_length
-            mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
+            # mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
+            mutation = 2** random.choice((0,8,16,24))
             # randomly choose between:
             # 1) switching one bit of the genome by XOR
             # 2) adding or substracting 1 from genome
-            # mutation = random.choice((
-            #         (self.genome ^ mutation),
-            #         (self.genome + random.choice((-1,1)))
-            #         ))
-            mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
+            mutation = random.choice((
+                    (self.genome ^ mutation),
+                    (self.genome + random.choice((-1,1)))
+                    ))
+            # mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
+            # mutation = self.genome + random.choice((-1,1))
             return (direction, mutation)
         else: # if not mutated, return genome as-is
             return (direction, self.genome)
