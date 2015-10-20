@@ -235,8 +235,9 @@ if __name__ == '__main__':
                         "X = 120, Y = 100 rectangles\n" \
                         "\t\t\tshort form: --ws 120x100\n" \
                         "--rect-size 10:\t\tset rectangle size to 10px squared\n" \
-                        "\t\t\tshort form: --rs 10\n" \
+                        "\t\t\tshort form: -rs 10\n" \
                         "--mutation-rate 0.1:\tset mutation rate to 0.1\n" \
+                        "\t\t\tshort form: -m 0.1\n" \
                         "\t\t\thigher rate means mutations more common\n" \
                         "\t\t\tshouldn't be >1\n"
                 quit(rtfm)
