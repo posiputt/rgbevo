@@ -220,7 +220,7 @@ class World:
 
 if __name__ == '__main__':
     indicators = '--help', '-h', '--world-size', '-ws', '--rect-size', '-rs', '--mutation-rate', '-m'
-    worldsize = [10, 10]
+    worldsize = [50, 50]
     rectsize = 10
     mutation_rate = 0.01
     for index, a in enumerate(sys.argv):
@@ -255,10 +255,6 @@ if __name__ == '__main__':
                 mutation_rate = float(sys.argv[index+1])
             else:
                 pass
-        else:
-            if not a == "rgbevo.py":
-                error = "Unknown option: " + a + ". Quitting."
-                quit(error)
     arg_echo = "Initializing world with these properties:\nworld-size: %ix%i\nrect-size: %i\nmutation-rate: %f\n" % (
             worldsize[0], worldsize[1],
             rectsize,
