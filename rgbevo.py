@@ -58,12 +58,12 @@ class Cell:
             ''' 
             mutation = 2**random.randint(1, len(bin(self.mgl))-3) # -2 bc of leading '0b', and -1 bc of cap
             '''
-            
-            mutation = 2** random.choice((7,15,23))
-            
             '''
+            mutation = 2** random.choice((7,15,23))
+            '''
+            
             mutation = 2** random.randint(0,23)
-            '''    
+                
             # randomly choose between:
             # 1) switching one bit of the genome by XOR
             # 2) adding or substracting 1 from genome
@@ -136,7 +136,7 @@ class World:
             )
             '''
             self.updated_rects = []
-            self.clock.tick_busy_loop(30)
+            self.clock.tick_busy_loop(20)
             #time.sleep(0.1)
 
     def gen_worldstring(self):
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     indicators = '--help', '-h', '--world-size', '-ws', '--rect-size', '-rs', '--mutation-rate', '-m'
     worldsize = [50, 50]
     rectsize = 10
-    mutation_rate = 0.01
+    mutation_rate = 0.1
     for index, a in enumerate(sys.argv):
         if a in indicators:
             if a == '--help' or a == '-h':
@@ -251,7 +251,6 @@ if __name__ == '__main__':
             elif a == '--rect-size' or a == '-rs':
                 rectsize = int(sys.argv[index+1])
             elif a == '--mutation-rate' or a == '-m':
-                print sys.argv[index+1]
                 mutation_rate = float(sys.argv[index+1])
             else:
                 pass
