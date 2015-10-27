@@ -122,11 +122,18 @@ class World:
         self.generations = 0                                # generation counters
         
     def run(self):
+        '''
+        function run
+        ------------
+        no parameters
+        main loop of this class
+        '''
         while (True):
-            self.tic()
-            pygame.display.update(self.updated_rects)
-            #print self.worldstring
+            self.tick()
+            pygame.display.update(self.updated_rects)   # update pygame window
             '''
+            # deprecated CLI 'graphics'
+            print self.worldstring
             print "optimal: %06x (%i of %i), generations: %i, changes: %i" % (
                 self.optimal_genome,
                 self.change_index,
@@ -137,10 +144,15 @@ class World:
             '''
             self.updated_rects = []
             self.clock.tick_busy_loop(20)
-            #time.sleep(0.1)
 
     def gen_worldstring(self):
-        #print "generating worldstring"
+        '''
+        function gen_worldstring (DEPRECATED)
+        -------------------------------------
+        no parameters
+        read wordlmap, convert into single string
+        '''
+        print "generating worldstring"
         worldstring = ''
         for row in self.worldmap:
             for cell in row:
@@ -151,7 +163,17 @@ class World:
     def get_worldstring(self):
         return self.worldstring
 
-    def tic(self):
+    def tick(self):
+        '''
+        function tick
+        -------------
+        no parameters
+        go through every cell in worldmap,
+        let it procreate
+        let it fight for neighboring cell
+        if applicable, write new genome into
+        neighboring cell
+        '''
         wm = self.worldmap
         for rowkey, row in enumerate(self.worldmap):
             for cellkey, cell in enumerate(row):
@@ -215,7 +237,7 @@ class World:
                         print "%06x" % self.optimal_genome
                         self.change_index = 0
         self.worldmap =  wm
-        self.gen_worldstring()
+        # self.gen_worldstring()
         self.generations += 1
 
 if __name__ == '__main__':
