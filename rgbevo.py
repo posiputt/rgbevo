@@ -206,18 +206,14 @@ class World:
                     diff_rival = abs(self.optimal_genome - rival_genome)
                     if diff_rival == 0:
                         diff_quotient = 1.0 - 5.960464832810452e-08
-                        #print "nay",
                     elif diff_this == 0:
                         diff_quotient = 5.960464832810452e-08
-                        #print "yay",
                     elif diff_rival > diff_this:
                         diff_quotient = float(diff_this) / (float(diff_rival))
                     elif diff_rival < diff_this:
                         diff_quotient = 1.0 - (float(diff_rival) / (float(diff_this)))
                     victory = random.random()
                     if victory > diff_quotient:
-                        #print diff_rival, diff_this, diff_quotient, victory
-                        #print "%06x wins over %06x" % (this_genome, rival_genome)
                         wm[rindex][cindex].set_genome(child[1])
                         color = child[1]
                         position = cindex*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
@@ -227,7 +223,6 @@ class World:
                 self.direction_stat[child[0]] += 1
                 if child[1] == self.optimal_genome:
                     self.change_index += 1
-                    # print self.change_index, self.change_optimal_at
                     if self.change_index >= self.change_optimal_at:
                         self.optimal_genome = random.choice(range(self.mgl))
                         print "%06x" % self.optimal_genome
