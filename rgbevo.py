@@ -69,7 +69,7 @@ class Cell:
             # 2) adding or substracting 1 from genome
             mutation = random.choice((
                     (self.genome ^ mutation),
-                    (self.genome + random.choice((-1,1)))
+                    (self.genome + random.choice((-1, 1, -256, 256, -65536, 65536)))
                     ))
             '''
             mutation = self.genome + random.choice((-1,1,-10,10,-100,100,-1000,1000,-10000,10000))
@@ -77,6 +77,10 @@ class Cell:
             '''
             mutation = self.genome + random.choice((-0x1,0x1,-0x100,0x100,-0x10000,0x10000))
             '''
+            if mutation < 0:
+                mutation = 0
+            elif mutation > 0xffffff:
+                mutation = 0xffffff
             return (direction, mutation)
         else: # if not mutated, return genome as-is
             return (direction, self.genome)
@@ -97,9 +101,9 @@ class World:
         mutation_rate       float <= 1  (larger number => higher mutation rate)
         '''
         self.mgl = max_genome_length
-        self.optimal_genome = random.randint(0, self.mgl-1)   # initial value of the "fitness functions" goal
+        self.optimal_genome = random.randint(0, self.mgl-1) # initial value of the "fitness functions" goal
         print "%06x" % self.optimal_genome
-        self.change_optimal_at = 100000                     # number of spawned optimal cells before optimums regeneration
+        self.change_optimal_at = size[0] * size[1]          # number of spawned optimal cells before optimums regeneration
         self.change_index = 0                               # counter of spawned optimal cells
         self.rectsize = rectsize
         self.size_x = size[0]
@@ -179,59 +183,51 @@ class World:
             for cellkey, cell in enumerate(row):
                 child = cell.procreate(self.mr)
                 this_genome = child[1]
+                diff_this = abs(self.optimal_genome - this_genome)
+                diff_quotient = 1.0
+                rindex = 0
+                cindex = 0
                 if child[0] == 'n':
-                    rindex = rowkey-1
-                    if not rindex < 0:
-                        rival_genome = self.worldmap[rindex][cellkey].get_genome()
-                        if rival_genome == this_genome:
-                            pass
-                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
-                            #print "%06x wins over %06x" % (this_genome, rival_genome)
-                            wm[rindex][cellkey].set_genome(child[1])
-                            color = child[1]
-                            position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
-                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
-                    else:
-                        pass
+                    rindex = rowkey - 1
+                    cindex = cellkey
                 elif child[0] == 'w':
-                    cindex = cellkey+1
-                    if not cindex >= self.size_x:
-                        rival_genome = self.worldmap[rowkey][cindex].get_genome()
-                        if rival_genome == this_genome:
-                            pass
-                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
-                            wm[rowkey][cindex].set_genome(child[1])
-                            position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
-                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
-                    else:
-                        pass
-                if child[0] == 's':
-                    rindex = rowkey+1
-                    if not rindex >= self.size_y:
-                        rival_genome = self.worldmap[rindex][cellkey].get_genome()
-                        if rival_genome == this_genome:
-                            pass
-                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
-                            wm[rindex][cellkey].set_genome(child[1])
-                            position = cellkey*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
-                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
-                    else:
-                        pass
-                if child[0] == 'e':
-                    cindex = cellkey-1
-                    if not cindex < 0:
-                        rival_genome = self.worldmap[rowkey][cindex].get_genome()
-                        if rival_genome == this_genome:
-                            pass
-                        elif not abs(self.optimal_genome - rival_genome) < abs(self.optimal_genome - this_genome):
-                            wm[rowkey][cindex].set_genome(child[1])
-                            position = cindex*self.rectsize, rowkey*self.rectsize, self.rectsize, self.rectsize
-                            self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
-                    else:
-                        pass
+                    rindex = rowkey
+                    cindex = cellkey - 1
+                elif child[0] == 's':
+                    rindex = rowkey + 1
+                    cindex = cellkey
+                elif child[0] == 'e':
+                    rindex = rowkey
+                    cindex = cellkey + 1
+                if not rindex < 0 and not rindex >= self.size_y and not cindex < 0 and not cindex >= self.size_x:
+                    rival_genome = self.worldmap[rindex][cindex].get_genome()
+                    if rival_genome == this_genome:
+                        continue
+                    diff_rival = abs(self.optimal_genome - rival_genome)
+                    if diff_rival == 0:
+                        diff_quotient = 1.0 - 5.960464832810452e-08
+                        #print "nay",
+                    elif diff_this == 0:
+                        diff_quotient = 5.960464832810452e-08
+                        #print "yay",
+                    elif diff_rival > diff_this:
+                        diff_quotient = float(diff_this) / (float(diff_rival))
+                    elif diff_rival < diff_this:
+                        diff_quotient = 1.0 - (float(diff_rival) / (float(diff_this)))
+                    victory = random.random()
+                    if victory > diff_quotient:
+                        #print diff_rival, diff_this, diff_quotient, victory
+                        #print "%06x wins over %06x" % (this_genome, rival_genome)
+                        wm[rindex][cindex].set_genome(child[1])
+                        color = child[1]
+                        position = cindex*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
+                        self.updated_rects.append(pygame.draw.rect(self.screen, child[1],position))
+                else:
+                    pass
                 self.direction_stat[child[0]] += 1
                 if child[1] == self.optimal_genome:
                     self.change_index += 1
+                    # print self.change_index, self.change_optimal_at
                     if self.change_index >= self.change_optimal_at:
                         self.optimal_genome = random.choice(range(self.mgl))
                         print "%06x" % self.optimal_genome
