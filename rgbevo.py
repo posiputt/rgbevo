@@ -101,9 +101,7 @@ class World:
         mutation_rate       float <= 1  (larger number => higher mutation rate)
         '''
         self.mgl = max_genome_length
-        self.optimal_genome = random.randint(0, self.mgl-1) # initial value of the "fitness functions" goal
-        print "%06x" % self.optimal_genome
-        self.change_optimal_at = size[0] * size[1]          # number of spawned optimal cells before optimums regeneration
+        self.change_optimal_at = size[0] * size[1] * 3      # number of spawned optimal cells before optimums regeneration
         self.change_index = 0                               # counter of spawned optimal cells
         self.rectsize = rectsize
         self.size_x = size[0]
@@ -114,16 +112,41 @@ class World:
         '''
         generate worldmap
         '''
+        self.optimal_genome = [] # initial value of the "fitness functions" goal
+        self.optimal_left =     0x111111
+        self.optimal_center =   0x222222
+        self.optimal_right =    0x333333
         self.worldmap = []
         for row in range(self.size_y):      # append rows
             self.worldmap.append([])
+            self.optimal_genome.append([])
             for col in range(self.size_x):  # append columns
-                self.worldmap[row].append(Cell(self.mgl))
+                self.worldmap[row].append(Cell(self.mgl, 0))
+                if col < self.size_x/3.0:
+                    self.optimal_genome[row].append(self.optimal_left)
+                elif col < self.size_x/1.5:
+                    self.optimal_genome[row].append(self.optimal_center)
+                else:
+                    self.optimal_genome[row].append(self.optimal_right)
+        # print self.optimal_genome
         # worldstring for "graphical" representation
         self.worldstring = self.gen_worldstring()
         self.updated_rects = []                             # for pygame.screen updating performance
         self.direction_stat = {'n':0, 'w':0, 's':0, 'e':0}  # direction choice counters
         self.generations = 0                                # generation counters
+        
+    def generate_optimums(self):
+        self.optimal_left = random.choice(range(self.mgl))
+        self.optimal_center = random.choice(range(self.mgl))
+        self.optimal_right = random.choice(range(self.mgl))  
+        for row in range(self.size_y):
+            for col in range(self.size_x):
+                if col < self.size_x/3.0:
+                    self.optimal_genome[row][col] = self.optimal_left
+                elif col < self.size_x/1.5:
+                    self.optimal_genome[row][col] = self.optimal_center
+                else:
+                    self.optimal_genome[row][col] = self.optimal_right
         
     def run(self):
         '''
@@ -183,7 +206,7 @@ class World:
             for cellkey, cell in enumerate(row):
                 child = cell.procreate(self.mr)
                 this_genome = child[1]
-                diff_this = abs(self.optimal_genome - this_genome)
+                diff_this = abs(self.optimal_genome[rowkey][cellkey] - this_genome)
                 diff_quotient = 1.0
                 rindex = 0
                 cindex = 0
@@ -203,7 +226,7 @@ class World:
                     rival_genome = self.worldmap[rindex][cindex].get_genome()
                     if rival_genome == this_genome:
                         continue
-                    diff_rival = abs(self.optimal_genome - rival_genome)
+                    diff_rival = abs(self.optimal_genome[rowkey][cellkey] - rival_genome)
                     if diff_rival == 0:
                         diff_quotient = 1.0 - 5.960464832810452e-08
                     elif diff_this == 0:
@@ -214,6 +237,7 @@ class World:
                         diff_quotient = 1.0 - (float(diff_rival) / (float(diff_this)))
                     victory = random.random()
                     if victory > diff_quotient:
+                        # print self.optimal_genome[rowkey][cellkey]
                         wm[rindex][cindex].set_genome(child[1])
                         color = child[1]
                         position = cindex*self.rectsize, rindex*self.rectsize, self.rectsize, self.rectsize
@@ -221,12 +245,13 @@ class World:
                 else:
                     pass
                 self.direction_stat[child[0]] += 1
-                if child[1] == self.optimal_genome:
+                if child[1] == self.optimal_genome[rowkey][cellkey]:
                     self.change_index += 1
                     if self.change_index >= self.change_optimal_at:
-                        self.optimal_genome = random.choice(range(self.mgl))
-                        print "%06x" % self.optimal_genome
+                        self.generate_optimums()
+                        print "new optimums\nleft: %06x\tcenter: %06x\tright: %06x" % (self.optimal_left, self.optimal_center, self.optimal_right)
                         self.change_index = 0
+                    
         self.worldmap =  wm
         # self.gen_worldstring()
         self.generations += 1
