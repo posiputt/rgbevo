@@ -25,16 +25,32 @@ def mutate_bitwise(genome, max_genome_length):
     return mutated_genome
     
     
-def fitness_bitwise (genome, env_genome, max_genome_length):
+def fitness_bitwise(genome, env_genome, max_genome_length):
     """
-    calculate fitness by counting matching 
+    calculate fitness by counting matching bits 
     """
-    cnd_print(DEBUG, ">> running: fitness_bitwise({0}, {1}, {2})".format(genome, env_genome, max_genome_length))
-    cnd_print(DEBUG, "env genome:\t{0:24b}".format(env_genome))
+    cnd_print(DEBUG, ">> running: fitness_bitwise({0:06x}, {1:06x}, {2})".format(genome, env_genome, max_genome_length))
+    cnd_print(DEBUG, "env genome:\t{0:06x}".format(env_genome))
 
     fitness = max_genome_length - bin(env_genome ^ genome).count('1')
     #count_1 = bin(env_genome & genome).count('1')    
     #fitness = (count_1/float(max_genome_length))
-    cnd_print(DEBUG, "fitness genome\t{0:24b}\t{1:2f}".format(genome, fitness))
+    cnd_print(DEBUG, "fitness genome\t{0:06x}\t{1:2d}".format(genome, fitness))
     
     return fitness
+
+
+def pick_winner(genomes, env_genome, max_genome_length):
+    """
+    randomly choose winner from a list of competitors
+    weighted by fitness
+    """
+    candidates = []
+    for g in genomes:
+        fitness = fitness_bitwise(g, env_genome, max_genome_length)
+        for i in range(fitness):
+            candidates.append(g)
+        #cnd_print(DEBUG, "weighted candidates list:\n {}".format(candidates))
+    
+    return random.choice(candidates)
+
